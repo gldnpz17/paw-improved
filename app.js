@@ -20,7 +20,7 @@ app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'publi
 app.use('/api', coursesRouter)
 
 app.listen(applicationConfig.port, () => {
-  console.log(`Server started. Listening to port ${applicationConfig.port}.`)
+  console.log(`Server started. Listening on port ${applicationConfig.port}.`)
 })
 
 export default app
