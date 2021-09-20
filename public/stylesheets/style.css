@@ -1,8 +1,39 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-a {
-  color: #00B7FF;
+ol {
+  padding: 0;
+}
+
+li {
+  list-style: none;
+}
+
+.content {
+  text-align: center;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.75rem;
+  background-color:blanchedalmond;
+  border: 2px solid burlywood;
+  color: black;
+  text-decoration: none;
+
+  transition-duration: 200ms;
+  border-radius: 5px;
+
+  box-shadow: 0 4px 4px -4px rgba(0, 0, 0, 0.4);
+}
+
+.button:hover {
+  transform: translateY(-0.2rem);
+  filter: brightness(95%);
 }
