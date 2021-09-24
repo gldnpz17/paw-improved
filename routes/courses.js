@@ -3,14 +3,19 @@ import CourseDtoMapper from '../mapper/course-dto-mapper.js';
 import Course from '../schemas/course.js';
 const coursesRouter = Router();
 
-coursesRouter.post('/courses', async (req, res) => {
-  let courseDocument = new Course(req.body)
-  
-  await courseDocument.save()
+coursesRouter.post('/courses', async (req, res, next) => {
+  try {
+    let courseDocument = new Course(req.body)
+    
+    await courseDocument.save()
 
-  let dto = CourseDtoMapper.mapToSimple(courseDocument.toObject())
+    let dto = CourseDtoMapper.mapToSimple(courseDocument.toObject())
 
-  res.send(JSON.stringify(dto))
+    res.send(JSON.stringify(dto))
+  } catch (err) {
+    // pass errors (if any) into the error handler
+    return next(err)
+  }
 })
 
 coursesRouter.get('/courses', async (req, res) => {
