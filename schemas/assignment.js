@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 
 export const assignmentSchema = mongoose.Schema({
+  course: String,
   title: String,
   details: String,
   deadline: Date  
