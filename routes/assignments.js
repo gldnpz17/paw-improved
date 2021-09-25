@@ -15,4 +15,20 @@ assignmentsRouter.post('/courses/assignments', async (req, res, next) => {
     }
 })
 
+assignmentsRouter.get('/courses/assignments', async (req, res) => {
+    let count = req.query.count ? parseInt(req.query.count) : 1000
+
+    try {
+        let query = Assignment.find()
+
+        let assignments = await query.limit(count).exec()
+
+        res.send(JSON.stringify(assignments))
+    }
+    catch (err) {
+        // pass errors (if any) into the error handler
+        return next(err)
+    }
+})
+
 export default assignmentsRouter;
