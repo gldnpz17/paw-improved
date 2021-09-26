@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import Assignment from '../schemas/assignment';
+import AssignmentDtoMapper from '../mapper/assignment-dto-mapper.js';
+import Assignment from '../schemas/assignment.js';
 const assignmentsRouter = Router();
 
 assignmentsRouter.post('/courses/assignments', async (req, res, next) => {
@@ -8,20 +9,26 @@ assignmentsRouter.post('/courses/assignments', async (req, res, next) => {
         
         await assignmentDocument.save()
 
-        res.send('Assignment succesfully added')
+        let dto = AssignmentDtoMapper.map(assignmentDocument.toObject())
+
+        res.send(JSON.stringify(dto))
     } catch (err) {
         // pass errors (if any) into the error handler
         return next(err)
     }
 })
 
-assignmentsRouter.get('/courses/assignments', async (req, res) => {
-    let count = req.query.count ? parseInt(req.query.count) : 1000
-
+assignmentsRouter.get('/courses/assignments', async (req, res, next) => {
     try {
+        let count = req.query.count ? parseInt(req.query.count) : 1000
+
         let query = Assignment.find()
 
-        let assignments = await query.limit(count).exec()
+        let assignmentDocuments = await query.limit(count).exec()
+
+        let assignments = assignmentDocuments.map(assignmentDocument => {
+            return AssignmentDtoMapper.mapToSimple(assignmentDocument.toObject())
+        })
 
         res.send(JSON.stringify(assignments))
     }
@@ -29,6 +36,49 @@ assignmentsRouter.get('/courses/assignments', async (req, res) => {
         // pass errors (if any) into the error handler
         return next(err)
     }
+})
+
+assignmentsRouter.get('/courses/assignments/:code', async (req, res) => {
+    let assignmentDocument = await Assignment.findOne({
+        code: req.params.code
+    }).exec()
+
+    if (!assignmentDocument) {
+    res.sendStatus(404)
+    }
+
+    let dto = AssignmentDtoMapper.map(assignmentDocument.toObject())
+
+    res.send(JSON.stringify(dto))
+})
+
+assignmentsRouter.put('/courses/assignments/:code', async (req, res) => {
+    let assignmentDocument = await Assignment.findOne({
+        code: req.params.code
+    }, req.body, { new: true }).exec()
+
+    if (!assignmentDocument) {
+    res.sendStatus(404)
+    }
+
+    let dto = AssignmentDtoMapper.map(assignmentDocument.toObject())
+
+    res.send(JSON.stringify(dto))
+})
+
+assignmentsRouter.delete('/courses/assignments/:code', async (req, res) => {
+    let { deletedCount } = await Assignment.deleteOne({
+      code: req.params.code
+    }).exec()
+  
+    if (deletedCount === 0) {
+      res.sendStatus(404)
+    }
+  
+    res.send(JSON.stringify({
+      success: true,
+      deletedCount
+    }))
 })
 
 export default assignmentsRouter;
