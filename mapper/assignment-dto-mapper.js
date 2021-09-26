@@ -1,12 +1,12 @@
 const AssignmentDtoMapper = {
     map: (assignment) => {
-      let { _id, ...assignmentFields } = assignment
-  
-      return {
-        id: _id,
-        ...assignmentFields
-      }
+        let { _id, ...assignmentFields } = assignment
+        
+        return {
+            id: _id,
+            ...assignmentFields
+        }
     }
-  }
-  
-  export default AssignmentDtoMapper
+}
+
+export default AssignmentDtoMapper

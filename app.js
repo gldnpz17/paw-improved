@@ -20,10 +20,10 @@ const app = express()
 // Configure services.
 let loggerService = null
 switch (applicationConfig.loggerType) {
-  case 'Discord':
+    case 'Discord':
     loggerService = new DiscordLogger(applicationConfig)
     break
-  default:
+    default:
     loggerService = new ConsoleLogger()
     break
 }
@@ -38,14 +38,14 @@ app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'publi
 
 // API Router Configurations.
 const configureCoursesRouter = () => {
-  let repository = new CourseRepository()
-
-  let router = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
+    let repository = new CourseRepository()
+    
+    let router = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
     .setLogging(loggerService)
     .setCaching(cachingService)
     .build()
-
-  return router
+    
+    return router
 }
 
 // Set API routes.
@@ -53,7 +53,7 @@ app.use('/api', configureCoursesRouter())
 
 // Start server.
 app.listen(applicationConfig.port, () => {
-  console.log(`Server started. Listening on port ${applicationConfig.port}.`)
+    console.log(`Server started. Listening on port ${applicationConfig.port}.`)
 })
 
 export default app

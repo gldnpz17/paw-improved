@@ -1,22 +1,22 @@
 import mongoose from 'mongoose'
 
 const courseSchema = mongoose.Schema({
-  code: String,
-  name: String,
-  lms: [{
+    code: String,
     name: String,
-    url: String
-  }],
-  assignments: [{ 
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Assignment' 
-  }]
+    lms: [{
+        name: String,
+        url: String
+    }],
+    assignments: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Assignment' 
+    }]
 })
 
 courseSchema.index({
-  code: 'text',
-  name: 'text',
-  'lms.name': 'text'
+    code: 'text',
+    name: 'text',
+    'lms.name': 'text'
 })
 
 const Course = mongoose.model('Course', courseSchema)

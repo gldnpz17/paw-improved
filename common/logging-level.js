@@ -1,6 +1,6 @@
 const loggingLevel = {
-  informational: 'INFORMATIONAL',
-  important: 'IMPORTANT'
+    informational: 'INFORMATIONAL',
+    important: 'IMPORTANT'
 }
 
 export default loggingLevel
