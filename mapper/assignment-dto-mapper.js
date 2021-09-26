@@ -4,9 +4,9 @@ const AssignmentDtoMapper = {
   
       return {
         id: _id,
-        ...lmsFields
+        ...assignmentFields
       }
     }
   }
   
-  export default LmsDtoMapper
+  export default AssignmentDtoMapper
