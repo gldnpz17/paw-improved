@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url'
 import CourseRepository from './repositories/course-repository.js'
 import CourseDtoMapper from './mapper/course-dto-mapper.js'
 import ConsoleLogger from './services/console-logger.js'
+import RedisCachingService from './services/redis-caching-service.js'
 
 mongoose.connect(applicationConfig.mongodbConnection)
 
@@ -25,11 +26,12 @@ app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'publi
 const configureCoursesRouter = () => {
   let repository = new CourseRepository()
 
-  let builder = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
+  let router = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
+    .setLogger(new ConsoleLogger())
+    .setCaching(new RedisCachingService(applicationConfig))
+    .build()
 
-  builder.setLogger(new ConsoleLogger())
-
-  return builder.build()
+  return router
 }
 
 // Set API routes.

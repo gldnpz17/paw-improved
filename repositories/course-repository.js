@@ -17,7 +17,7 @@ class CourseReporitory {
     return courseDocument
   }
 
-  async searchCourse(keywords, start, count) {
+  async searchCourses(keywords, start, count) {
     let query;
     if (keywords) {
       query = Course.find({
@@ -44,7 +44,7 @@ class CourseReporitory {
 
   async deleteCourse(courseCode) {
     let { deletedCount } = await Course.deleteOne({
-      code: req.params.code
+      code: courseCode
     }).exec()
 
     return deletedCount
