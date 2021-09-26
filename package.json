@@ -17,5 +17,8 @@
     "morgan": "~1.9.1",
     "nodemon": "^2.0.12",
     "redis": "^4.0.0-rc.2"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
