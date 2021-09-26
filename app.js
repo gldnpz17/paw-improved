@@ -10,10 +10,24 @@ import CourseRepository from './repositories/course-repository.js'
 import CourseDtoMapper from './mapper/course-dto-mapper.js'
 import ConsoleLogger from './services/console-logger.js'
 import RedisCachingService from './services/redis-caching-service.js'
+import DiscordLogger from './services/discord-logger.js'
+import loggingLevel from './common/logging-level.js'
 
 mongoose.connect(applicationConfig.mongodbConnection)
 
 const app = express()
+
+// Configure services.
+let loggerService = null
+switch (applicationConfig.loggerType) {
+  case 'Discord':
+    loggerService = new DiscordLogger(applicationConfig)
+    break
+  default:
+    loggerService = new ConsoleLogger()
+    break
+}
+let cachingService = new RedisCachingService(applicationConfig)
 
 // Configure middlewares.
 app.use(logger('dev'))
@@ -27,8 +41,8 @@ const configureCoursesRouter = () => {
   let repository = new CourseRepository()
 
   let router = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
-    .setLogger(new ConsoleLogger())
-    .setCaching(new RedisCachingService(applicationConfig))
+    .setLogging(loggerService)
+    .setCaching(cachingService)
     .build()
 
   return router

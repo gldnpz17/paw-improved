@@ -16,7 +16,7 @@ class CoursesRouterBuilder {
     return this
   }
 
-  setLogger(loggerService) {
+  setLogging(loggerService) {
     this.loggerService = loggerService
 
     return this
