@@ -7,17 +7,19 @@ class DiscordLogger {
     })
     this.channel = null
     client.login(discordToken).then(() => {
-      let guild = client.guilds.cache.get(discordServerId)
-      let channel = guild?.channels.cache.get(discordChannelId)
-      
-      if (channel) {
-        const startMessage = 'Discord logger started!'
-        console.log(startMessage)
-        channel.send(startMessage)
-        this.channel = channel
-      } else {
-        console.log('Discord logger failed to initialize!')
-      }
+      client.once('ready', () => {
+        let guild = client.guilds.cache.get(discordServerId)
+        let channel = guild?.channels.cache.get(discordChannelId)
+        
+        if (channel) {
+          const startMessage = 'Discord logger started!'
+          console.log(startMessage)
+          channel.send(startMessage)
+          this.channel = channel
+        } else {
+          console.log('Discord logger failed to initialize!')
+        }
+      })
     })
   }
 
