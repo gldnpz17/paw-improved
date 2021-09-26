@@ -18,29 +18,35 @@ coursesRouter.post('/courses', async (req, res, next) => {
   }
 })
 
-coursesRouter.get('/courses', async (req, res) => {
-  let keywords = req.query.keywords ?? null
-  let start = req.query.start ? parseInt(req.query.start) : 0
-  let count = req.query.count ? parseInt(req.query.count) : 1000
-
-  let query;
-  if (keywords) {
-    query = Course.find({
-      $text: {
-        $search: keywords
-      }
+coursesRouter.get('/courses', async (req, res, next) => {
+  try {
+    let keywords = req.query.keywords ?? null
+    let start = req.query.start ? parseInt(req.query.start) : 0
+    let count = req.query.count ? parseInt(req.query.count) : 1000
+  
+    let query;
+    if (keywords) {
+      query = Course.find({
+        $text: {
+          $search: keywords
+        }
+      })
+    } else {
+      query = Course.find()
+    }
+  
+    let courseDocuments = await query.skip(start).limit(count).exec()
+  
+    let courses = courseDocuments.map(courseDocument => {
+      return CourseDtoMapper.mapToSimple(courseDocument.toObject())
     })
-  } else {
-    query = Course.find()
+  
+    res.send(JSON.stringify(courses))
+  } catch (err) {
+    // pass errors (if any) into the error handler
+    return next(err)
   }
-
-  let courseDocuments = await query.skip(start).limit(count).exec()
-
-  let courses = courseDocuments.map(courseDocument => {
-    return CourseDtoMapper.mapToSimple(courseDocument.toObject())
-  })
-
-  res.send(JSON.stringify(courses))
+  
 })
 
 coursesRouter.get('/courses/:code', async (req, res) => {
