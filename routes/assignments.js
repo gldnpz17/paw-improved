@@ -40,7 +40,7 @@ assignmentsRouter.get('/courses/:id/assignments', async (req, res, next) => {
 
 assignmentsRouter.get('/courses/:id/assignments/:id', async (req, res) => {
     let assignmentDocument = await Assignment.findOne({
-        code: req.params.code
+        id: req.params.id
     }).exec()
 
     if (!assignmentDocument) {
@@ -53,8 +53,8 @@ assignmentsRouter.get('/courses/:id/assignments/:id', async (req, res) => {
 })
 
 assignmentsRouter.put('/courses/:id/assignments/:id', async (req, res) => {
-    let assignmentDocument = await Assignment.findOne({
-        code: req.params.code
+    let assignmentDocument = await Assignment.findOneAndUpdate({
+        id: req.params.id
     }, req.body, { new: true }).exec()
 
     if (!assignmentDocument) {
