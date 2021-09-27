@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 import applicationConfig from './configuration/application-config.js'
 import CoursesRouterBuilder from './routes/courses.js'
+import assignmentsRouter from './routes/assignments.js'
 import mongoose from 'mongoose'
 import { fileURLToPath } from 'url'
 import CourseRepository from './repositories/course-repository.js'
@@ -50,6 +51,7 @@ const configureCoursesRouter = () => {
 
 // Set API routes.
 app.use('/api', configureCoursesRouter())
+app.use('/api', assignmentsRouter)
 
 // Start server.
 app.listen(applicationConfig.port, () => {
