@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 
 export const assignmentSchema = mongoose.Schema({
-    code: String,
     course: String,
     title: String,
     details: String,
