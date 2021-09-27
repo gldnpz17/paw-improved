@@ -3,115 +3,98 @@ import mongoose from 'mongoose';
 import AssignmentDtoMapper from '../mapper/assignment-dto-mapper.js';
 import Assignment from '../schemas/assignment.js';
 import Course from '../schemas/course.js';
-const assignmentsRouter = Router();
 
-assignmentsRouter.post('/courses/:courseId/assignments', async (req, res, next) => {
-    try {
-        let course = await Course.findById(req.params.courseId).exec();
-        
-        course.assignments.push(new Assignment({
-            ...req.body,
-            course: req.params.courseId
-        }))
-
-        await course.save()
-
-        let dto = AssignmentDtoMapper.map(course.toObject())
-
-        res.send(JSON.stringify(dto))
-    } catch (err) {
-        // pass errors (if any) into the error handler
-        return next(err)
-    }
-})
-
-assignmentsRouter.get('/assignments', async (req, res, next) => {
-    try {
-        let start = req.query.start ? parseInt(req.query.start) : 0
-        let count = req.query.count ? parseInt(req.query.count) : 1000
-
-        let assignments = await Course
-            .aggregate()
-            .unwind('$assignments')
-            .replaceRoot('$assignments')
-            .skip(start)
-            .limit(count)
-            .exec()
-        
-        let dtos = assignments.map(AssignmentDtoMapper.map)
-
-        res.send(JSON.stringify(dtos))
-    }
-    catch (err) {
-        // pass errors (if any) into the error handler
-        return next(err)
-    }
-})
-
-assignmentsRouter.get('/assignments/:id', async (req, res) => {
-    let course = await Course.findOne({
-        'assignments._id': mongoose.Types.ObjectId(req.params.id)
-    }).exec()
-
-    if (!course) {
-        res.sendStatus(404)
+class AssignmentsRouterBuilder {
+    constructor(configuration, assignmentRepository, dtoMapper) {
+        this.configuration = configuration
+        this.repository = assignmentRepository
+        this.dtoMapper = dtoMapper
     }
 
-    let assignment = course.assignments.id(req.params.id)
+    setCaching(cachingService) {
+        this.cachingService = cachingService
 
-    let dto = AssignmentDtoMapper.map(assignment.toObject())
+        return this
+    }
 
-    res.send(JSON.stringify(dto))
-})
+    setLogging(loggingService) {
+        this.loggingService = loggingService
 
-assignmentsRouter.put('/assignments/:assignmentId', async (req, res) => {
-    let course = await Course
-        .findOneAndUpdate({
-            'assignments._id': mongoose.Types.ObjectId(req.params.assignmentId)
-        }, {    
-            $set: {
-                'assignments.$': {
-                    ...req.body,
-                    _id: req.params.assignmentId
-                }
+        return this
+    }
+
+    build() {
+        const router = Router();
+
+        router.post('/courses/:courseId/assignments', async (req, res, next) => {
+            try {
+                let course = await this.repository.createAssignment(req.params.courseId, req.body)
+
+                let dto = AssignmentDtoMapper.map(course)
+
+                res.send(JSON.stringify(dto))
+            } catch (err) {
+                // pass errors (if any) into the error handler
+                return next(err)
             }
-        }, { new: true })
-        .exec()
+        })
 
-    if (!course) {
-        res.sendStatus(404)
+        router.get('/assignments', async (req, res, next) => {
+            try {
+                let keywords = req.query.keywords
+                let start = req.query.start ? parseInt(req.query.start) : 0
+                let count = req.query.count ? parseInt(req.query.count) : 1000        
+                
+                let assignments = await this.repository.searchAssignments(keywords, start, count)
 
-        return
+                let dtos = assignments.map(AssignmentDtoMapper.map)
+
+                res.send(JSON.stringify(dtos))
+            }
+            catch (err) {
+                // pass errors (if any) into the error handler
+                return next(err)
+            }
+        })
+
+        router.get('/assignments/:id', async (req, res) => {
+            let assignment = await this.repository.readAssignmentById(req.params.id)
+
+            let dto = AssignmentDtoMapper.map(assignment)
+
+            res.send(JSON.stringify(dto))
+        })
+
+        router.put('/assignments/:id', async (req, res) => {
+            let assignment = await this.repository.updateAssignment(req.params.id, req.body)
+
+            if (!assignment) {
+                res.sendStatus(404)
+
+                return
+            }
+
+            let dto = AssignmentDtoMapper.map(assignment)
+
+            res.send(JSON.stringify(dto))
+        })
+
+        router.delete('/assignments/:id', async (req, res) => {
+            let assignment = await this.repository.deleteAssignment(req.params.id)
+
+            if (!assignment) {
+                res.sendStatus(404)
+
+                return
+            }
+            
+            let dto = AssignmentDtoMapper.map(assignment)
+
+            res.send(JSON.stringify(dto))
+        })
+
+        return router
     }
+}
 
-    console.log(course.toObject())
-
-    let assignment = course.assignments.id(req.params.assignmentId)
-
-    let dto = AssignmentDtoMapper.map(assignment.toObject())
-
-    res.send(JSON.stringify(dto))
-})
-
-assignmentsRouter.delete('/assignments/:assignmentId', async (req, res) => {
-    let course = await Course.findOne({
-        'assignments._id': mongoose.Types.ObjectId(req.params.assignmentId)
-    }).exec()
-
-    let assignmentDocument = course.assignments.id(req.params.assignmentId)
-  
-    if (!assignmentDocument) {
-        res.sendStatus(404)
-    }
-
-    let assignment = assignmentDocument.toObject()
-    assignmentDocument.remove()
-
-    await course.save()
-  
-    let dto = AssignmentDtoMapper.map(assignment)
-
-    res.send(JSON.stringify(dto))
-})
-
-export default assignmentsRouter;
+export default AssignmentsRouterBuilder

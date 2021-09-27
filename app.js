@@ -1,10 +1,8 @@
 import express from 'express'
 import path, { dirname } from 'path'
 import cookieParser from 'cookie-parser'
-import logger from 'morgan'
 import applicationConfig from './configuration/application-config.js'
 import CoursesRouterBuilder from './routes/courses.js'
-import assignmentsRouter from './routes/assignments.js'
 import mongoose from 'mongoose'
 import { fileURLToPath } from 'url'
 import CourseRepository from './repositories/course-repository.js'
@@ -12,46 +10,51 @@ import CourseDtoMapper from './mapper/course-dto-mapper.js'
 import ConsoleLogger from './services/console-logger.js'
 import RedisCachingService from './services/redis-caching-service.js'
 import DiscordLogger from './services/discord-logger.js'
-import loggingLevel from './common/logging-level.js'
+import AssignmentRepository from './repositories/assignment-repository.js'
+import AssignmentsRouterBuilder from './routes/assignments.js'
+import AssignmentDtoMapper from './mapper/assignment-dto-mapper.js'
 
 mongoose.connect(applicationConfig.mongodbConnection)
 
 const app = express()
 
-// Configure services.
-let loggerService = null
+// Configure services and repositories.
+let loggingService = null
 switch (applicationConfig.loggerType) {
     case 'Discord':
-    loggerService = new DiscordLogger(applicationConfig)
-    break
+        loggingService = new DiscordLogger(applicationConfig)
+        break
+    case 'Console':
+        loggingService = new ConsoleLogger()
     default:
-    loggerService = new ConsoleLogger()
-    break
+        console.warn('Logger not configured.')
+        break
 }
 let cachingService = new RedisCachingService(applicationConfig)
+let courseRepository = new CourseRepository()
+let assignmentRepository = new AssignmentRepository()
 
 // Configure middlewares.
-app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'public')))
 
-// API Router Configurations.
-const configureCoursesRouter = () => {
-    let repository = new CourseRepository()
-    
-    let router = new CoursesRouterBuilder(applicationConfig, repository, CourseDtoMapper)
-    .setLogging(loggerService)
-    .setCaching(cachingService)
-    .build()
-    
-    return router
-}
-
 // Set API routes.
-app.use('/api', configureCoursesRouter())
-app.use('/api', assignmentsRouter)
+app.use(
+    '/api', 
+    new CoursesRouterBuilder(applicationConfig, courseRepository, CourseDtoMapper)
+        .setLogging(loggingService)
+        .setCaching(cachingService)
+        .build()
+)
+app.use(
+    '/api', 
+    new AssignmentsRouterBuilder(applicationConfig, assignmentRepository, AssignmentDtoMapper)
+        .setLogging(loggingService)
+        .setCaching(cachingService)
+        .build()
+)
 
 // Start server.
 app.listen(applicationConfig.port, () => {
