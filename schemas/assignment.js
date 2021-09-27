@@ -1,15 +1,18 @@
 import mongoose from 'mongoose'
 
 export const assignmentSchema = mongoose.Schema({
-    course: String,
-    title: String,
-    details: String,
-    deadline: Date  
-})
-
-assignmentSchema.index({
-    title: 'text',
-    details: 'text'
+    title: {
+        type: String,
+        required: true
+    },
+    details: {
+        type: String,
+        required: true
+    },
+    deadline: {
+        type: Date,
+        required: true
+    }
 })
 
 const Assignment = mongoose.model('Assignment', assignmentSchema)

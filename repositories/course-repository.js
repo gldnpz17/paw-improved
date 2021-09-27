@@ -2,52 +2,52 @@ import Course from "../schemas/course.js"
 
 class CourseReporitory {
     async createCourse(course) {
-        let courseDocument = new Course(course)
+        let newCourse = new Course(course)
         
-        await courseDocument.save()
+        await newCourse.save()
         
-        return courseDocument
+        return newCourse.toObject()
     }
     
-    async readCourse(courseCode) {
-        let courseDocument = await Course.findOne({
-            code: courseCode
-        }).exec()
-        
-        return courseDocument
+    async readCourse(id) {
+        return await Course
+            .findById(id)
+            .lean()
+            .exec()
     }
     
     async searchCourses(keywords, start, count) {
-        let query;
+        let query = {};
+        
         if (keywords) {
-            query = Course.find({
+            query = {
+                ...query,
                 $text: {
                     $search: keywords
                 }
-            })
-        } else {
-            query = Course.find()
+            }
         }
         
-        let courseDocuments = await query.skip(start).limit(count).exec()
-        
-        return courseDocuments
+        return await Course
+            .find(query)
+            .skip(start)
+            .limit(count)
+            .lean()
+            .exec()
     }
     
-    async updateCourse(courseCode, course) {
-        let courseDocument = await Course.findOneAndUpdate({
-            code: courseCode
-        }, course, { new: true }).exec()
-        
-        return courseDocument
+    async updateCourse(id, course) {
+        return await Course
+            .findByIdAndUpdate(id, course, { new: true })
+            .lean()
+            .exec()
     }
     
-    async deleteCourse(courseCode) {
-        let { deletedCount } = await Course.deleteOne({
-            code: courseCode
-        }).exec()
-        
-        return deletedCount
+    async deleteCourse(id) {
+        return await Course
+            .findByIdAndDelete(id)
+            .lean()
+            .exec()
     }
 }
 

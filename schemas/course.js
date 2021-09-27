@@ -1,22 +1,29 @@
 import mongoose from 'mongoose'
+import { assignmentSchema } from './assignment.js'
 
 const courseSchema = mongoose.Schema({
-    code: String,
-    name: String,
-    lms: [{
-        name: String,
-        url: String
-    }],
-    assignments: [{ 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Assignment' 
-    }]
+    code: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    assignments: [assignmentSchema]
+})
+
+courseSchema.pre('findOneAndUpdate', function(next) {
+    this.options.runValidators = true
+    next()
 })
 
 courseSchema.index({
     code: 'text',
     name: 'text',
-    'lms.name': 'text'
+    'assignments.title': 'text',
+    'assignments.details': 'text'
 })
 
 const Course = mongoose.model('Course', courseSchema)

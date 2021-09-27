@@ -26,9 +26,9 @@ class CoursesRouterBuilder {
         const coursesRouter = Router();
         
         coursesRouter.post('/courses', async (req, res) => {
-            let document = await this.repository.createCourse(req.body)
+            let course = await this.repository.createCourse(req.body)
             
-            let dto = this.dtoMapper.mapToSimple(document.toObject())
+            let dto = this.dtoMapper.mapToSimple(course)
             
             this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
             
@@ -53,11 +53,9 @@ class CoursesRouterBuilder {
                 let start = req.query.start ? parseInt(req.query.start) : 0
                 let count = req.query.count ? parseInt(req.query.count) : 1000
                 
-                let documents = await this.repository.searchCourses(keywords, start, count)
+                let courses = await this.repository.searchCourses(keywords, start, count)
                 
-                dtos = documents.map(document => {
-                    return this.dtoMapper.mapToSimple(document.toObject())
-                })
+                dtos = courses.map(this.dtoMapper.mapToSimple)
                 
                 await this.cachingService?.cacheObject(`coursesearch:${urlHash}`, dtos, 10000)
                 
@@ -71,11 +69,11 @@ class CoursesRouterBuilder {
             res.send(JSON.stringify(dtos))
         })
                 
-        coursesRouter.get('/courses/:code', async (req, res) => {
+        coursesRouter.get('/courses/:id', async (req, res) => {
             let queryStartTime = performance.now()
             
             // Try fetch from cache.
-            let dto = await this.cachingService?.fetchCachedObject(`course:${req.params.code}`)
+            let dto = await this.cachingService?.fetchCachedObject(`course:${req.params.id}`)
             
             if (dto) {
                 let queryEndTime = performance.now()
@@ -85,11 +83,11 @@ class CoursesRouterBuilder {
                 )
             } else {
                 // Fetch from database and save to cache.
-                let document = await this.repository.readCourse(req.params.code)
+                let course = await this.repository.readCourse(req.params.id)
                     
-                dto = this.dtoMapper.mapToDetailed(document.toObject())
+                dto = this.dtoMapper.mapToDetailed(course)
                 
-                await this.cachingService?.cacheObject(`course:${req.params.code}`, dto, 10000)
+                await this.cachingService?.cacheObject(`course:${req.params.id}`, dto, 10000)
                 
                 let queryEndTime = performance.now()
                 this.loggerService?.log(
@@ -112,36 +110,36 @@ class CoursesRouterBuilder {
             res.send(JSON.stringify(dto))
         })
                     
-        coursesRouter.put('/courses/:code', async (req, res) => {
-            let document = await this.repository.updateCourse(req.params.code, req.body)
+        coursesRouter.put('/courses/:id', async (req, res) => {
+            let course = await this.repository.updateCourse(req.params.id, req.body)
             
-            if (!document) {
+            if (!course) {
                 res.sendStatus(404)
                 
                 return
             }
             
-            let dto = this.dtoMapper.mapToSimple(document.toObject())
+            let dto = this.dtoMapper.mapToSimple(course)
                 
-            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} successfully updated.`)
+            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code}(id: ${dto.id}) successfully updated.`)
             
             res.send(JSON.stringify(dto))
         })
 
-        coursesRouter.delete('/courses/:code', async (req, res) => {
-            let deletedCount = await this.repository.deleteCourse(req.params.code)
+        coursesRouter.delete('/courses/:id', async (req, res) => {
+            let course = await this.repository.deleteCourse(req.params.id)
             
-            if (deletedCount === 0) {
+            if (!course) {
                 res.sendStatus(404)
         
                 return
             }
+
+            let dto = this.dtoMapper.mapToSimple(course)
                         
-            this.loggerService?.log(loggingLevel.informational, `Course ${req.params.code} successfully deleted.`)
-                    
-            res.send(JSON.stringify({
-                success: true
-            }))
+            this.loggerService?.log(loggingLevel.informational, `Course ${req.params.id} successfully deleted.`)
+            
+            res.send(JSON.stringify(dto))
         })
                             
         return coursesRouter
