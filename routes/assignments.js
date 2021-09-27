@@ -3,7 +3,7 @@ import AssignmentDtoMapper from '../mapper/assignment-dto-mapper.js';
 import Assignment from '../schemas/assignment.js';
 const assignmentsRouter = Router();
 
-assignmentsRouter.post('/courses/assignments', async (req, res, next) => {
+assignmentsRouter.post('/courses/:id/assignments', async (req, res, next) => {
     try {
         let assignmentDocument = new Assignment(req.body)
         
@@ -18,7 +18,7 @@ assignmentsRouter.post('/courses/assignments', async (req, res, next) => {
     }
 })
 
-assignmentsRouter.get('/courses/assignments', async (req, res, next) => {
+assignmentsRouter.get('/courses/:id/assignments', async (req, res, next) => {
     try {
         let count = req.query.count ? parseInt(req.query.count) : 1000
 
@@ -38,7 +38,7 @@ assignmentsRouter.get('/courses/assignments', async (req, res, next) => {
     }
 })
 
-assignmentsRouter.get('/courses/assignments/:code', async (req, res) => {
+assignmentsRouter.get('/courses/:id/assignments/:id', async (req, res) => {
     let assignmentDocument = await Assignment.findOne({
         code: req.params.code
     }).exec()
@@ -52,7 +52,7 @@ assignmentsRouter.get('/courses/assignments/:code', async (req, res) => {
     res.send(JSON.stringify(dto))
 })
 
-assignmentsRouter.put('/courses/assignments/:code', async (req, res) => {
+assignmentsRouter.put('/courses/:id/assignments/:id', async (req, res) => {
     let assignmentDocument = await Assignment.findOne({
         code: req.params.code
     }, req.body, { new: true }).exec()
@@ -66,7 +66,7 @@ assignmentsRouter.put('/courses/assignments/:code', async (req, res) => {
     res.send(JSON.stringify(dto))
 })
 
-assignmentsRouter.delete('/courses/assignments/:code', async (req, res) => {
+assignmentsRouter.delete('/courses/:id/assignments/:id', async (req, res) => {
     let { deletedCount } = await Assignment.deleteOne({
       code: req.params.code
     }).exec()
