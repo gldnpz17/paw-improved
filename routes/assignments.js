@@ -48,23 +48,18 @@ assignmentsRouter.get('/assignments', async (req, res, next) => {
     }
 })
 
-<<<<<<< HEAD
-assignmentsRouter.get('/courses/:courseId/assignments/:assignmentId', async (req, res) => {
-    let course = await Course.findById(req.params.courseId).exec()
-    
-    let assignment = course.assignments.id(req.params.assignmentId).toObject()
-=======
-assignmentsRouter.get('/courses/:id/assignments/:id', async (req, res) => {
-    let assignmentDocument = await Assignment.findOne({
-        id: req.params.id
+assignmentsRouter.get('/assignments/:id', async (req, res) => {
+    let course = await Course.findOne({
+        'assignments._id': mongoose.Types.ObjectId(req.params.id)
     }).exec()
->>>>>>> bb46b83809d372c7f421398d10bd45d930705538
 
-    if (!assignment) {
+    if (!course) {
         res.sendStatus(404)
     }
 
-    let dto = AssignmentDtoMapper.map(assignment)
+    let assignment = course.assignments.id(req.params.id)
+
+    let dto = AssignmentDtoMapper.map(assignment.toObject())
 
     res.send(JSON.stringify(dto))
 })
