@@ -30,7 +30,7 @@ class CoursesRouterBuilder {
             
             let dto = this.dtoMapper.mapToSimple(document.toObject())
             
-            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} created.`)
+            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
             
             res.send(JSON.stringify(dto))
         })
@@ -123,7 +123,7 @@ class CoursesRouterBuilder {
                                 
                                 let dto = this.dtoMapper.mapToSimple(document.toObject())
                                 
-                                this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} updated.`)
+                                this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} successfully updated.`)
                                 
                                 res.send(JSON.stringify(dto))
                             })
@@ -137,7 +137,7 @@ class CoursesRouterBuilder {
                                     return
                                 }
                                 
-                                this.loggerService?.log(loggingLevel.informational, `Course ${req.params.code} deleted.`)
+                                this.loggerService?.log(loggingLevel.informational, `Course ${req.params.code} successfully deleted.`)
                                 
                                 res.send(JSON.stringify({
                                     success: true
