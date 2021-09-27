@@ -27,7 +27,7 @@ assignmentsRouter.get('/courses/:id/assignments', async (req, res, next) => {
         let assignmentDocuments = await query.limit(count).exec()
 
         let assignments = assignmentDocuments.map(assignmentDocument => {
-            return AssignmentDtoMapper.mapToSimple(assignmentDocument.toObject())
+            return AssignmentDtoMapper.map(assignmentDocument.toObject())
         })
 
         res.send(JSON.stringify(assignments))
