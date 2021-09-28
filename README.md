@@ -39,7 +39,7 @@ npm install
 * `MONGODB_CONNECTION`: The connection string used to connect to MongoDB.
 * `REDIS_CONNECTION`: The connection string used to connect to Redis for caching purposes.
 * `LOGGER_TYPE`: The method used for logging. Choose between `Discord` or `Console`. (Default: `Console`)
-* `PORT`: The port number express will listen to.
+* `PORT`: The port number express will listen to (Default: 3000).
 
 If you choose `Discord` for logging, set up these environment variables:
 * `DISCORD_TOKEN`: Secret token for your discord bot.
@@ -50,6 +50,7 @@ If you choose `Discord` for logging, set up these environment variables:
 ```
 npm start
 ```
+
 # [API Documentation]
 # Courses
 ## Create a course
@@ -58,7 +59,10 @@ npm start
 
 **Body:** The created course.
 ```
-
+{
+  "code":"TIF213146",
+  "name":"Pengembangan Aplikasi Web (A)"
+}
 ```
 
 ### Successful Response
@@ -66,7 +70,11 @@ npm start
 
 **Body:**
 ```
-
+{
+  "id":"61532c60d2fde1de4c775148",
+  "code":"TIF213146",
+  "name":"Pengembangan Aplikasi Web (A)"
+}
 ```
 
 ## Search for courses
@@ -83,7 +91,23 @@ npm start
 
 **Body:** An array of matching courses.
 ```
-
+[
+  {
+    "id":"61532c60d2fde1de4c775148",
+    "code":"TIF213146",
+    "name":"Pengembangan Aplikasi Web (A)"
+  },
+  {
+    "id":"61532d08d2fde1de4c77514a",
+    "code":"TIF215112",
+    "name":"Pengembangan Aplikasi Piranti Bergerak (A)"
+  },
+  {
+    "id":"61532d2ad2fde1de4c77514c",
+    "code":"TIF213145",
+    "name":"Rekayasa Data (A)"
+  }
+]
 ```
 
 ## Get a single course
@@ -98,7 +122,25 @@ npm start
 
 **Body:** The fetched course.
 ```
-
+{
+  "id":"61532c60d2fde1de4c775148",
+  "code":"TIF213146",
+  "name":"Pengembangan Aplikasi Web (A)",
+  "assignments":[
+    {
+      "id":"61532fc5d2fde1de4c775156",
+      "title":"Mengembangkan REST API",
+      "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+      "deadline":"2021-09-26T15:54:41.785Z"
+    },
+    {
+      "id":"6153309bd2fde1de4c77515b",
+      "title":"Persiapan presentasi untuk tugas REST API",
+      "details":"Diambil dari teams. Untuk pertemuan minggu ini, silahkan persiapkan presnetasi maks 5 menit untuk tugas yang dikerjakan besok.",
+      "deadline":"2021-09-26T15:54:41.785Z"
+    }
+  ]
+}
 ```
 
 ## Update a course
@@ -108,12 +150,23 @@ npm start
 **Route parameters:**
 * `id`: The ID of the course you want to update.
 
+**Body:** The new contents.
+```
+{
+  "code": "TIF213146",
+  "name": "Pengembangan Aplikasi Web 4 Dimensi (A)"
+}
+```
+
 ### Successful Response
 **Status code:** `200 OK`
 
 **Body:** The updated course.
 ```
-
+{
+  "code": "TIF213146",
+  "name": "Pengembangan Aplikasi Web 4 Dimensi (A)"
+}
 ```
 
 ## Delete a course
@@ -128,7 +181,11 @@ npm start
 
 **Body:** The deleted course.
 ```
-
+{
+  "id":"61532d2ad2fde1de4c77514c",
+  "code":"TIF213145",
+  "name":"Rekayasa Data (A)"
+}
 ```
 
 # Assignments
@@ -139,17 +196,26 @@ npm start
 **Route parameters**
 * `courseid`: The ID of the course you want to add an assigment to.
 
-**Body:** The created assignment.
+**Body:**
 ```
-
+{
+    "title":"Mengembangkan REST API",
+    "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+    "deadline":"2021-09-26T15:54:41.785Z"
+}
 ```
 
 ### Successful Response
 **Status code:** `201 Created`
 
-**Body:**
+**Body:** The created assignment.
 ```
-
+{
+  "id":"61532fc5d2fde1de4c775156",
+  "title":"Mengembangkan REST API",
+  "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+  "deadline":"2021-09-26T15:54:41.785Z"
+}
 ```
 
 ## Search for assignments
@@ -166,7 +232,25 @@ npm start
 
 **Body:** An array of matching assignments.
 ```
-
+[
+  {
+    "id":"61532fc5d2fde1de4c775156",
+    "title":"Mengembangkan REST API",
+    "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+    "deadline":"2021-09-26T15:54:41.785Z"
+  },
+  {
+    "id":"6153309bd2fde1de4c77515b",
+    "title":"Persiapan presentasi untuk tugas REST API","details":"Diambil dari teams. Untuk pertemuan minggu ini, silahkan persiapkan presnetasi maks 5 menit untuk tugas yang dikerjakan besok.",
+    "deadline":"2021-09-26T15:54:41.785Z"
+  },
+  {
+    "id":"615330f4d2fde1de4c77515f",
+    "title":"Membuat aplikasi android sederhana",
+    "details":"Dengan kelompok yang sudah ditentukan, buat aplikasi android dengan 3 screen dan 3 navigasi. Ikuti github workflow. Nama repo dengan format papb-team1. Nama branch yang dikumpulkan TA-pre-UTS. Kumpul link github bersama video demo aplikasi.",
+    "deadline":"2021-09-28T15:05:28.062Z"
+  }
+]
 ```
 
 ## Get a single assignment
@@ -176,14 +260,17 @@ npm start
 **Route parameters**
 * `id`: The ID of the assignment you want to fetch.
 
-
-
 ### Successful Response
 **Status code:** `200 OK`
 
 **Body:** The fetched assignment.
 ```
-
+{
+  "id":"61532fc5d2fde1de4c775156",
+  "title":"Mengembangkan REST API",
+  "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+  "deadline":"2021-09-26T15:54:41.785Z"
+}
 ```
 
 ## Update an assignment
@@ -193,12 +280,26 @@ npm start
 **Route parameters:**
 * `id`: The ID of the assignment you want to update.
 
+**Body:** The new contents of the assignment.
+```
+{
+  "title":"Mengembangkan REST API",
+  "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+  "deadline":"2021-09-26T15:54:41.785Z"
+}
+```
+
 ### Successful Response
 **Status code:** `200 OK`
 
 **Body:** The updated assignment.
 ```
-
+{
+  "id":"61532fc5d2fde1de4c775156",
+  "title":"Mengembangkan REST API",
+  "details":"Dengan kelompok yang telah disusun sebelumnya, buat 2 fungsi CRUD. Buat repositori github dengan pola nama repositori paw-kelompok-1. Nama branch yang dikumpulkan bernama tugas-2.",
+  "deadline":"2021-09-26T15:54:41.785Z"
+}
 ```
 
 ## Delete an assignment
@@ -213,7 +314,12 @@ npm start
 
 **Body:** The deleted assignment.
 ```
-
+{
+  "id":"615333c6d2fde1de4c775179",
+  "title":"Membuat aplikasi android sederhana",
+  "details":"Dengan kelompok yang sudah ditentukan, buat aplikasi android dengan 3 screen dan 3 navigasi. Ikuti github workflow. Nama repo dengan format papb-team1. Nama branch yang dikumpulkan TA-pre-UTS. Kumpul link github bersama video demo aplikasi.",
+  "deadline":"2021-09-28T15:05:28.062Z"
+}
 ```
 
 # Errors
