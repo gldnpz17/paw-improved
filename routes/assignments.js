@@ -14,7 +14,8 @@ const AssignmentsRouter = (assignmentRepository, dtoMapper, cachingService = nul
 
         let dto = dtoMapper.map(assignment)
 
-        res.status(201).send(JSON.stringify(dto))
+        res.statusCode = 201
+        res.send(JSON.stringify(dto))
     }))
 
     router.get('/assignments', routeHandlerErrorWrapper(async (req, res) => {
