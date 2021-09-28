@@ -1,3 +1,5 @@
 # paw-kelompok-10
 
-TODO: write docs
+2 CRUD functions:
+  -  Course
+  -  Assignment
