@@ -38,6 +38,8 @@ class DiscordLogger {
                 })
             })
 
+            counter++;
+
             await delay(10000)
         }
 
