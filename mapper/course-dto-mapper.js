@@ -1,3 +1,5 @@
+import AssignmentDtoMapper from './assignment-dto-mapper.js'
+
 const CourseDtoMapper = {
     mapToSimple: (course) => {
         let { _id, __v, assignments, ...courseFields } = course
@@ -8,13 +10,14 @@ const CourseDtoMapper = {
         }
     },
     mapToDetailed: (course) => {
-        let { _id, __v, ...courseFields } = course
+        let { _id, __v, assignments, ...courseFields } = course
         
-        courseFields.lms = courseFields.lms.map(LmsDtoMapper.map)
+        assignments = assignments.map(AssignmentDtoMapper.map)
         
         return {
             id: _id,
-            ...courseFields
+            ...courseFields,
+            assignments
         }
     }
 }

@@ -2,7 +2,6 @@ import express from 'express'
 import path, { dirname } from 'path'
 import cookieParser from 'cookie-parser'
 import applicationConfig from './configuration/application-config.js'
-import CoursesRouterBuilder from './routes/courses.js'
 import mongoose from 'mongoose'
 import { fileURLToPath } from 'url'
 import CourseRepository from './repositories/course-repository.js'
@@ -13,6 +12,8 @@ import DiscordLogger from './services/discord-logger.js'
 import AssignmentRepository from './repositories/assignment-repository.js'
 import AssignmentsRouterBuilder from './routes/assignments.js'
 import AssignmentDtoMapper from './mapper/assignment-dto-mapper.js'
+import GenericErrorHandler from './error-handlers/generic-error-handler.js'
+import CoursesRouter from './routes/courses.js'
 
 mongoose.connect(applicationConfig.mongodbConnection)
 
@@ -43,18 +44,15 @@ app.use(express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'publi
 // Set API routes.
 app.use(
     '/api', 
-    new CoursesRouterBuilder(applicationConfig, courseRepository, CourseDtoMapper)
-        .setLogging(loggingService)
-        .setCaching(cachingService)
-        .build()
+    CoursesRouter(courseRepository, CourseDtoMapper, cachingService, loggingService)
 )
 app.use(
     '/api', 
-    new AssignmentsRouterBuilder(applicationConfig, assignmentRepository, AssignmentDtoMapper)
-        .setLogging(loggingService)
-        .setCaching(cachingService)
-        .build()
+    AssignmentsRouterBuilder(assignmentRepository, AssignmentDtoMapper, cachingService, loggingService)
 )
+
+// Configure error handlers.
+app.use(GenericErrorHandler(loggingService))
 
 // Start server.
 app.listen(applicationConfig.port, () => {

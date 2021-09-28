@@ -1,8 +1,15 @@
+import loggingLevel from '../common/logging-level.js'
 class ConsoleLogger {
-    log(loggingLevel, message) {
+    log(level, message) {
         let now = new Date()
         
-        console.log(`(${now.toISOString()}) [${loggingLevel}] ${message}`)
+        let logMessage = `(${now.toISOString()}) [${level}] ${message}`
+
+        if (level === loggingLevel.important) {
+            console.warn(`[ERROR!]\n${logMessage}`)
+        } else {
+            console.log(logMessage)
+        }
     }
 }
 

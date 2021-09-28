@@ -38,7 +38,7 @@ class CourseReporitory {
     
     async updateCourse(id, course) {
         return await Course
-            .findByIdAndUpdate(id, course, { new: true })
+            .findByIdAndUpdate(id, course, { new: true, overwrite: true })
             .lean()
             .exec()
     }

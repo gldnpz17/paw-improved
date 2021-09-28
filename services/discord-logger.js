@@ -1,4 +1,5 @@
 import { Client, Intents } from "discord.js"
+import loggingLevel from '../common/logging-level.js'
 
 class DiscordLogger {
     constructor({ discordToken, discordServerId, discordChannelId }) {
@@ -23,10 +24,14 @@ class DiscordLogger {
         })
     }
     
-    log(loggingLevel, message) {
+    log(level, message) {
         let now = new Date()
         
-        this.channel.send(`(${now.toISOString()}) [${loggingLevel}] ${message}`)
+        if (level === loggingLevel.important) {
+            this.channel.send(`(${now.toISOString()}) [${loggingLevel.important}] @everyone\n${message}`)
+        } else {
+            this.channel.send(`(${now.toISOString()}) [${level}] ${message}`)
+        }
     }
 }
 

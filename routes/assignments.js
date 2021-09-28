@@ -1,100 +1,138 @@
-import { Router } from 'express';
-import mongoose from 'mongoose';
-import AssignmentDtoMapper from '../mapper/assignment-dto-mapper.js';
-import Assignment from '../schemas/assignment.js';
-import Course from '../schemas/course.js';
+import { Router } from 'express'
+import loggingLevel from '../common/logging-level.js'
+import { performance } from 'perf_hooks'
+import { createHash } from 'crypto'
+import routeHandlerErrorWrapper from '../common/route-handler-error-wrapper.js'
 
-class AssignmentsRouterBuilder {
-    constructor(configuration, assignmentRepository, dtoMapper) {
-        this.configuration = configuration
-        this.repository = assignmentRepository
-        this.dtoMapper = dtoMapper
-    }
+const AssignmentsRouter = (assignmentRepository, dtoMapper, cachingService = null, loggingService = null) => {
+    const router = Router()
 
-    setCaching(cachingService) {
-        this.cachingService = cachingService
+    router.post('/courses/:courseId/assignments', routeHandlerErrorWrapper(async (req, res) => {
+        let assignment = await assignmentRepository.createAssignment(req.params.courseId, req.body)
 
-        return this
-    }
+        loggingService.log(loggingLevel.informational, `Assignment ${assignment.title} was created.`)
 
-    setLogging(loggingService) {
-        this.loggingService = loggingService
+        let dto = dtoMapper.map(assignment)
 
-        return this
-    }
+        res.send(JSON.stringify(dto))
+    }))
 
-    build() {
-        const router = Router();
+    router.get('/assignments', routeHandlerErrorWrapper(async (req, res) => {
+        let queryStartTime = performance.now()
 
-        router.post('/courses/:courseId/assignments', async (req, res, next) => {
-            try {
-                let course = await this.repository.createAssignment(req.params.courseId, req.body)
+        let urlHash = createHash('md5').update(req.originalUrl).digest('base64')
 
-                let dto = AssignmentDtoMapper.map(course)
+        let dtos = await cachingService?.fetchCachedObject(`assignmentsearch:${urlHash}`)
 
-                res.send(JSON.stringify(dto))
-            } catch (err) {
-                // pass errors (if any) into the error handler
-                return next(err)
-            }
-        })
-
-        router.get('/assignments', async (req, res, next) => {
-            try {
-                let keywords = req.query.keywords
-                let start = req.query.start ? parseInt(req.query.start) : 0
-                let count = req.query.count ? parseInt(req.query.count) : 1000        
-                
-                let assignments = await this.repository.searchAssignments(keywords, start, count)
-
-                let dtos = assignments.map(AssignmentDtoMapper.map)
-
-                res.send(JSON.stringify(dtos))
-            }
-            catch (err) {
-                // pass errors (if any) into the error handler
-                return next(err)
-            }
-        })
-
-        router.get('/assignments/:id', async (req, res) => {
-            let assignment = await this.repository.readAssignmentById(req.params.id)
-
-            let dto = AssignmentDtoMapper.map(assignment)
-
-            res.send(JSON.stringify(dto))
-        })
-
-        router.put('/assignments/:id', async (req, res) => {
-            let assignment = await this.repository.updateAssignment(req.params.id, req.body)
-
-            if (!assignment) {
-                res.sendStatus(404)
-
-                return
-            }
-
-            let dto = AssignmentDtoMapper.map(assignment)
-
-            res.send(JSON.stringify(dto))
-        })
-
-        router.delete('/assignments/:id', async (req, res) => {
-            let assignment = await this.repository.deleteAssignment(req.params.id)
-
-            if (!assignment) {
-                res.sendStatus(404)
-
-                return
-            }
+        if (dtos) {
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Assignments queried with cache hit. Query time: ${queryEndTime - queryStartTime} ms.`
+            )
+        } else {
+            let keywords = req.query.keywords
+            let start = req.query.start ? parseInt(req.query.start) : 0
+            let count = req.query.count ? parseInt(req.query.count) : 1000   
             
-            let dto = AssignmentDtoMapper.map(assignment)
+            let assignments = await assignmentRepository.searchAssignments(keywords, start, count)
 
-            res.send(JSON.stringify(dto))
-        })
+            dtos = assignments.map(dtoMapper.map)
 
-        return router
-    }
+            await cachingService?.cacheObject(`assignmentsearch:${urlHash}`, dtos, 10000)
+        
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Assignments queried with cache miss. Results cached. Query time: ${queryEndTime - queryStartTime} ms.`
+            )
+        }
+
+        res.send(JSON.stringify(dtos))
+    }))
+
+    router.get('/assignments/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let queryStartTime = performance.now()
+
+        let dto = await cachingService?.fetchCachedObject(`assignment:${req.params.id}`)
+
+        if (dto) {
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Assignment queried with cache hit. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
+            )
+        } else {
+            let assignment = await assignmentRepository.readAssignmentById(req.params.id)
+
+            if (!assignment) {
+                res.sendStatus(404)
+                
+                loggingService?.log(loggingLevel.informational, 'Assignment queried with no result.')
+        
+                return
+            }
+
+            dto = dtoMapper.map(assignment)
+
+            await cachingService?.cacheObject(`assignment:${req.params.id}`, dto, 10000)
+            
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Assignment queried with cache miss. Result cached. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
+            )
+        }
+
+        res.send(JSON.stringify(dto))
+    }))
+
+    router.put('/assignments/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let assignment = await assignmentRepository.updateAssignment(req.params.id, req.body)
+
+        if (!assignment) {
+            res.sendStatus(404)
+
+            loggingService?.log(loggingLevel.informational, `Assignment ${req.params.id} update attempted but document was not found.`)
+
+            return
+        }
+
+        let dto = dtoMapper.map(assignment)
+
+        loggingService?.log(
+            loggingLevel.informational, 
+            `Assignment ${req.params.id} was updated.`
+        )
+
+        res.send(JSON.stringify(dto))
+    }))
+
+    router.delete('/assignments/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let assignment = await assignmentRepository.deleteAssignment(req.params.id)
+
+        if (!assignment) {
+            res.sendStatus(404)
+
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Assignment ${req.params.id} delete attempted but document was not found.`
+            )
+
+            return
+        }
+        
+        let dto = dtoMapper.map(assignment)
+
+        loggingService?.log(
+            loggingLevel.informational, 
+            `Assignment ${req.params.id} was deleted.`
+        )
+
+        res.send(JSON.stringify(dto))
+    }))
+
+    return router
 }
 
-export default AssignmentsRouterBuilder
+export default AssignmentsRouter

@@ -1,24 +1,26 @@
 import Course from '../schemas/course.js'
 import Assignment from '../schemas/assignment.js'
-import { Types } from 'mongoose';
+import mongoose from 'mongoose';
 
 class AssignmentRepository {
     async createAssignment(courseId, assignment) {
         let course = await Course.findById(courseId).exec();
             
-        course.assignments.push(new Assignment({
+        let newAssignment = new Assignment({
             ...assignment,
-            course: Types.ObjectId(courseId)
-        }))
+            course: mongoose.Types.ObjectId(courseId)
+        })
+
+        course.assignments.push(newAssignment)
 
         await course.save()
 
-        return course.toObject()
+        return newAssignment.toObject()
     }
 
     async readAssignmentById(id) {
         let course = await Course.findOne({
-            'assignments._id': Types.ObjectId(id)
+            'assignments._id': mongoose.Types.ObjectId(id)
         }).exec()
 
         if (!course) {
@@ -31,10 +33,29 @@ class AssignmentRepository {
     }
 
     async searchAssignments(keywords, start, count) {
+        let query = {}
+
+        if (keywords) {
+            let searchRegex = keywords.split(' ').map(keyword => `(${keyword})`).join('|')
+
+            query = {
+                ...query,
+                $or: [
+                    {
+                        title: { $regex: searchRegex, $options: 'i' } 
+                    },
+                    {
+                        details: { $regex: searchRegex, $options: 'i' } 
+                    }
+                ]
+            }
+        }
+
         let assignments = await Course
             .aggregate()
             .unwind('$assignments')
             .replaceRoot('$assignments')
+            .match(query)
             .skip(start)
             .limit(count)
             .exec()
@@ -45,12 +66,12 @@ class AssignmentRepository {
     async updateAssignment(id, assignment) {
         let course = await Course
             .findOneAndUpdate({
-                'assignments._id': Types.ObjectId(id)
+                'assignments._id': mongoose.Types.ObjectId(id)
             }, {    
                 $set: {
                     'assignments.$': {
                         ...assignment,
-                        _id: Types.ObjectId(id)
+                        _id: mongoose.Types.ObjectId(id)
                     }
                 }
             }, { new: true })
@@ -60,14 +81,14 @@ class AssignmentRepository {
             return null
         }
 
-        let assignmentDocument = course.assignments.id(req.params.assignmentId)
+        let assignmentDocument = course.assignments.id(id)
 
         return assignmentDocument.toObject()
     }
 
     async deleteAssignment(id) {
         let course = await Course.findOne({
-            'assignments._id': Types.ObjectId(id)
+            'assignments._id': mongoose.Types.ObjectId(id)
         }).exec()
 
         if (!course) {

@@ -19,6 +19,11 @@ courseSchema.pre('findOneAndUpdate', function(next) {
     next()
 })
 
+courseSchema.pre('findByIdAndUpdate', function(next) {
+    this.options.runValidators = true
+    next()
+})
+
 courseSchema.index({
     code: 'text',
     name: 'text',

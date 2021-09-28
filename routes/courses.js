@@ -2,149 +2,128 @@ import { Router } from 'express';
 import loggingLevel from '../common/logging-level.js'
 import { performance } from 'perf_hooks'
 import { createHash } from 'crypto'
+import routeHandlerErrorWrapper from '../common/route-handler-error-wrapper.js'
 
-class CoursesRouterBuilder {
-    constructor(configuration, courseRepository, dtoMapper) {
-        this.configuration = configuration
-        this.repository = courseRepository
-        this.dtoMapper = dtoMapper
-    }
+const CoursesRouter = (courseRepository, dtoMapper, cachingService = null, loggingService = null) => {
+    const router = Router();
     
-    setCaching(cachingService) {
-        this.cachingService = cachingService
+    router.post('/courses', routeHandlerErrorWrapper(async (req, res) => {
+        let course = await courseRepository.createCourse(req.body)
         
-        return this
-    }
+        let dto = dtoMapper.mapToSimple(course)
+        
+        loggingService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
+        
+        res.send(JSON.stringify(dto))
+    }))
     
-    setLogging(loggerService) {
-        this.loggerService = loggerService
+    router.get('/courses', routeHandlerErrorWrapper(async (req, res) => {
+        let queryStartTime = performance.now()
         
-        return this
-    }
-    
-    build() {
-        const coursesRouter = Router();
+        let urlHash = createHash('md5').update(req.originalUrl).digest('base64')
         
-        coursesRouter.post('/courses', async (req, res) => {
-            let course = await this.repository.createCourse(req.body)
-            
-            let dto = this.dtoMapper.mapToSimple(course)
-            
-            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
-            
-            res.send(JSON.stringify(dto))
-        })
+        let dtos = await cachingService?.fetchCachedObject(`coursesearch:${urlHash}`)
         
-        coursesRouter.get('/courses', async (req, res) => {
-            let queryStartTime = performance.now()
+        if (dtos) {
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Courses queried with cache hit. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
+            )
+        } else {
+            let keywords = req.query.keywords ?? null
+            let start = req.query.start ? parseInt(req.query.start) : 0
+            let count = req.query.count ? parseInt(req.query.count) : 1000
             
-            let urlHash = createHash('md5').update(req.originalUrl).digest('base64')
+            let courses = await courseRepository.searchCourses(keywords, start, count)
             
-            let dtos = await this.cachingService?.fetchCachedObject(`coursesearch:${urlHash}`)
+            dtos = courses.map(dtoMapper.mapToSimple)
             
-            if (dtos) {
-                let queryEndTime = performance.now()
-                this.loggerService?.log(
-                    loggingLevel.informational, 
-                    `Courses queried with cache hit. Query time: ${queryEndTime - queryStartTime} ms.`
-                )
-            } else {
-                let keywords = req.query.keywords ?? null
-                let start = req.query.start ? parseInt(req.query.start) : 0
-                let count = req.query.count ? parseInt(req.query.count) : 1000
-                
-                let courses = await this.repository.searchCourses(keywords, start, count)
-                
-                dtos = courses.map(this.dtoMapper.mapToSimple)
-                
-                await this.cachingService?.cacheObject(`coursesearch:${urlHash}`, dtos, 10000)
-                
-                let queryEndTime = performance.now()
-                this.loggerService?.log(
-                    loggingLevel.informational, 
-                    `Courses queried with cache miss. Results cached. Query time: ${queryEndTime - queryStartTime} ms.`
-                )
-            }
-                
-            res.send(JSON.stringify(dtos))
-        })
-                
-        coursesRouter.get('/courses/:id', async (req, res) => {
-            let queryStartTime = performance.now()
+            await cachingService?.cacheObject(`coursesearch:${urlHash}`, dtos, 10000)
             
-            // Try fetch from cache.
-            let dto = await this.cachingService?.fetchCachedObject(`course:${req.params.id}`)
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Courses queried with cache miss. Results cached. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
+            )
+        }
             
-            if (dto) {
-                let queryEndTime = performance.now()
-                this.loggerService?.log(
-                    loggingLevel.informational, 
-                    `Course queried with cache hit. Query time: ${queryEndTime - queryStartTime} ms.`
-                )
-            } else {
-                // Fetch from database and save to cache.
-                let course = await this.repository.readCourse(req.params.id)
-                    
-                dto = this.dtoMapper.mapToDetailed(course)
-                
-                await this.cachingService?.cacheObject(`course:${req.params.id}`, dto, 10000)
-                
-                let queryEndTime = performance.now()
-                this.loggerService?.log(
-                    loggingLevel.informational, 
-                    `Course queried with cache miss. Result cached. Query time: ${queryEndTime - queryStartTime} ms.`
-                )
-            }
-                    
-            if (!dto) {
-                res.sendStatus(404)
-                
-                this.loggerService?.log(
-                    loggingLevel.informational, 
-                    'Course queried with no results.'
-                )
+        res.send(JSON.stringify(dtos))
+    }))
+            
+    router.get('/courses/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let queryStartTime = performance.now()
         
-                return
-            }
-                        
-            res.send(JSON.stringify(dto))
-        })
-                    
-        coursesRouter.put('/courses/:id', async (req, res) => {
-            let course = await this.repository.updateCourse(req.params.id, req.body)
-            
+        let dto = await cachingService?.fetchCachedObject(`course:${req.params.id}`)
+        
+        if (dto) {
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Course queried with cache hit. Query time: ${queryEndTime - queryStartTime} ms.`
+            )
+        } else {
+            let course = await courseRepository.readCourse(req.params.id)
+
             if (!course) {
                 res.sendStatus(404)
                 
-                return
-            }
-            
-            let dto = this.dtoMapper.mapToSimple(course)
-                
-            this.loggerService?.log(loggingLevel.informational, `Course ${dto.code}(id: ${dto.id}) successfully updated.`)
-            
-            res.send(JSON.stringify(dto))
-        })
-
-        coursesRouter.delete('/courses/:id', async (req, res) => {
-            let course = await this.repository.deleteCourse(req.params.id)
-            
-            if (!course) {
-                res.sendStatus(404)
+                loggingService?.log(
+                    loggingLevel.informational, 
+                    'Course queried with no result.'
+                )
         
                 return
             }
-
-            let dto = this.dtoMapper.mapToSimple(course)
-                        
-            this.loggerService?.log(loggingLevel.informational, `Course ${req.params.id} successfully deleted.`)
+                
+            dto = dtoMapper.mapToDetailed(course)
             
-            res.send(JSON.stringify(dto))
-        })
-                            
-        return coursesRouter
-    }
+            await cachingService?.cacheObject(`course:${req.params.id}`, dto, 10000)
+            
+            let queryEndTime = performance.now()
+            loggingService?.log(
+                loggingLevel.informational, 
+                `Course queried with cache miss. Result cached. Query time: ${queryEndTime - queryStartTime} ms.`
+            )
+        }
+                    
+        res.send(JSON.stringify(dto))
+    }))
+                
+    router.put('/courses/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let course = await courseRepository.updateCourse(req.params.id, req.body)
+        
+        if (!course) {
+            res.sendStatus(404)
+            
+            return
+        }
+        
+        let dto = dtoMapper.mapToSimple(course)
+            
+        loggingService?.log(loggingLevel.informational, `Course ${dto.code}(id: ${dto.id}) successfully updated.`)
+        
+        res.send(JSON.stringify(dto))
+    }))
+
+    router.delete('/courses/:id', routeHandlerErrorWrapper(async (req, res) => {
+        let course = await courseRepository.deleteCourse(req.params.id)
+        
+        if (!course) {
+            res.sendStatus(404)
+    
+            return
+        }
+
+        let dto = dtoMapper.mapToSimple(course)
+                    
+        loggingService?.log(loggingLevel.informational, `Course ${req.params.id} successfully deleted.`)
+        
+        res.send(JSON.stringify(dto))
+    }))
+                        
+    return router
 }
                     
-export default CoursesRouterBuilder;
+export default CoursesRouter;
             
