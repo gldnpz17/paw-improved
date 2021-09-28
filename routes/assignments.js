@@ -14,7 +14,7 @@ const AssignmentsRouter = (assignmentRepository, dtoMapper, cachingService = nul
 
         let dto = dtoMapper.map(assignment)
 
-        res.statusCode = 201
+        res.status(201)
         res.send(JSON.stringify(dto))
     }))
 

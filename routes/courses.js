@@ -14,7 +14,7 @@ const CoursesRouter = (courseRepository, dtoMapper, cachingService = null, loggi
         
         loggingService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
         
-        res.statusCode = 201
+        res.status(201)
         res.send(JSON.stringify(dto))
     }))
     
