@@ -1,5 +1,10 @@
 # paw-kelompok-10
-API Documentations below.
+An API used as a repository of assignments to help remind each other of assignments and their deadlines.
+
+**Tech stack:**
+* Express
+* MongoDB
+* Redis
 
 ## Team Members
 1. Aditya Dwi Cahyo Putra (19/444035/TK/49231)
