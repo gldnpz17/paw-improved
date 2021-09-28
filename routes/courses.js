@@ -14,7 +14,7 @@ const CoursesRouter = (courseRepository, dtoMapper, cachingService = null, loggi
         
         loggingService?.log(loggingLevel.informational, `Course ${dto.code} successfully created.`)
         
-        res.send(JSON.stringify(dto))
+        res.status(201).send(JSON.stringify(dto))
     }))
     
     router.get('/courses', routeHandlerErrorWrapper(async (req, res) => {
