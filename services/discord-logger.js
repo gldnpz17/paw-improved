@@ -27,6 +27,10 @@ class DiscordLogger {
     log(level, message) {
         let now = new Date()
         
+        if (!this.channel) {
+            console.log('Discord logger has not started.')
+        }
+
         if (level === loggingLevel.important) {
             this.channel.send(`(${now.toISOString()}) [${loggingLevel.important}] @everyone\n${message}`)
         } else {
