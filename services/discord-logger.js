@@ -2,7 +2,7 @@ import { Client, Intents } from "discord.js"
 import loggingLevel from '../common/logging-level.js'
 
 const delay = (duration) => {
-    return Promise((resolve) => {
+    return new Promise((resolve) => {
         setTimeout(resolve, duration)
     })
 }
