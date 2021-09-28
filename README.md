@@ -3,8 +3,8 @@ An API used as a repository of assignments to help remind each other of assignme
 
 **Tech stack:**
 * Express
-* MongoDB
-* Redis
+* MongoDB (ODM: Mongoose)
+* Redis (Client library: ioredis)
 
 ## Team Members
 1. Aditya Dwi Cahyo Putra (19/444035/TK/49231)
