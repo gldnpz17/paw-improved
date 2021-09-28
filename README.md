@@ -1,5 +1,5 @@
 # paw-kelompok-10
-An API used as a repository of assignments to help remind each other of assignments and their deadlines.
+An API used as a repository of assignments to help remind each other of assignments and their deadlines. API Documentation could be found below.
 
 **Tech stack:**
 * Express
