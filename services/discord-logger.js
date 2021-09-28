@@ -29,6 +29,8 @@ class DiscordLogger {
         
         if (!this.channel) {
             console.log('Discord logger has not started.')
+
+            return
         }
 
         if (level === loggingLevel.important) {
