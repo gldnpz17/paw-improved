@@ -18,10 +18,10 @@ class DiscordLogger {
     }
 
     async attemptLogin(client, token, serverId, channelId) {
-        console.log('Attempting to connect to discord.')
-        
         let counter = 0
         while(!this.channel || counter < 10) {
+            console.log('Attempting to connect to discord.')
+
             client.login(token).then(() => {
                 client.once('ready', () => {
                     let guild = client.guilds.cache.get(serverId)
