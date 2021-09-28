@@ -60,7 +60,7 @@ const CoursesRouter = (courseRepository, dtoMapper, cachingService = null, loggi
             let queryEndTime = performance.now()
             loggingService?.log(
                 loggingLevel.informational, 
-                `Course queried with cache hit. Query time: ${queryEndTime - queryStartTime} ms.`
+                `Course queried with cache hit. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
             )
         } else {
             let course = await courseRepository.readCourse(req.params.id)
@@ -83,7 +83,7 @@ const CoursesRouter = (courseRepository, dtoMapper, cachingService = null, loggi
             let queryEndTime = performance.now()
             loggingService?.log(
                 loggingLevel.informational, 
-                `Course queried with cache miss. Result cached. Query time: ${queryEndTime - queryStartTime} ms.`
+                `Course queried with cache miss. Result cached. Query time: ${Math.round(queryEndTime - queryStartTime)} ms.`
             )
         }
                     
