@@ -10,7 +10,7 @@ import ConsoleLogger from './services/console-logger.js'
 import RedisCachingService from './services/redis-caching-service.js'
 import DiscordLogger from './services/discord-logger.js'
 import AssignmentRepository from './repositories/assignment-repository.js'
-import AssignmentsRouterBuilder from './routes/assignments.js'
+import AssignmentsRouter from './routes/assignments.js'
 import AssignmentDtoMapper from './mapper/assignment-dto-mapper.js'
 import GenericErrorHandler from './error-handlers/generic-error-handler.js'
 import CoursesRouter from './routes/courses.js'
@@ -27,6 +27,7 @@ switch (applicationConfig.loggerType) {
         break
     case 'Console':
         loggingService = new ConsoleLogger()
+        break
     default:
         console.warn('Logger not configured.')
         break
@@ -48,7 +49,7 @@ app.use(
 )
 app.use(
     '/api', 
-    AssignmentsRouterBuilder(assignmentRepository, AssignmentDtoMapper, cachingService, loggingService)
+    AssignmentsRouter(assignmentRepository, AssignmentDtoMapper, cachingService, loggingService)
 )
 
 // Configure error handlers.
