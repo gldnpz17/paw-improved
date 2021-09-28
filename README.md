@@ -1,10 +1,5 @@
 # paw-kelompok-10
-
-Table of Contents
-* [Team Members]()
-* [Directory Structure]()
-* [How to Run]()
-* [API Documentation]()
+API Documentations below.
 
 ## Team Members
 1. Aditya Dwi Cahyo Putra (19/444035/TK/49231)
@@ -50,25 +45,7 @@ If you choose `Discord` for logging, set up these environment variables:
 ```
 npm start
 ```
-
-## API Documentation
-API Documentation Table of Contents
-* Courses
-  * [Create a course]()
-  * [Search for courses]()
-  * [Get a single course]()
-  * [Update a course]()
-  * [Delete a course]()
-* Assignments
-  * [Add an assignment to a course]()
-  * [Search for assignments]()
-  * [Get a single assignment]()
-  * [Update an assignment]()
-  * [Delete an assignment]()
-* Errors
-  * [Missing resources]()
-  * [Unhandled errors]()
-
+# [API Documentation]
 # Courses
 ## Create a course
 ### Request
