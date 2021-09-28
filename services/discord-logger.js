@@ -19,7 +19,7 @@ class DiscordLogger {
 
     async attemptLogin(client, token, serverId, channelId) {
         let counter = 0
-        while(!this.channel || counter < 10) {
+        while(!this.channel && counter < 5) {
             console.log('Attempting to connect to discord.')
 
             client.login(token).then(() => {
@@ -41,7 +41,7 @@ class DiscordLogger {
             await delay(10000)
         }
 
-        if (counter >= 10) {
+        if (counter >= 5) {
             console.log('Too many discord connect attempts.')
         }
     }
