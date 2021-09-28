@@ -26,7 +26,7 @@ base
 |-- repositories (Components used to encapsulate data access that adhere to the repository pattern.)
 |-- routes (Router instances and route handlers.)
 |-- schemas (Mongoose schemas.)
-|-- services (Utilities use by route handlers such as logging and caching.)
+|-- services (Utilities used by route handlers such as logging and caching.)
 ```
 
 ## How to Run
