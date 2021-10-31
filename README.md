@@ -7,10 +7,10 @@ An API used as a repository of assignments to help remind each other of assignme
 * Redis (Client library: ioredis)
 
 ## Team Members
-1. Aditya Dwi Cahyo Putra (19/444035/TK/49231)
+1. ~Aditya Dwi Cahyo Putra (19/444035/TK/49231)~
 2. Firdaus Bisma Suryakusuma (19/444051/TK/49247)
-3. Hafidz Arifudin (19/444052/TK/49248)
-4. Lathif Ma’arif (19/444058/TK/49254)
+3. ~Hafidz Arifudin (19/444052/TK/49248)~
+4. ~Lathif Ma’arif (19/444058/TK/49254)~
 
 ## Directory Structure
 ```
